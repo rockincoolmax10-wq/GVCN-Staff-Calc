@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord Format Builder</title>
+<style>
+  :root{
+    --bg:#111214; --panel:#181a1e; --panel2:#202328; --border:#30343b;
+    --text:#f1f2f3; --muted:#aeb3bb; --accent:#54c3ea; --accent2:#3aaed7;
+    --success:#43d17a; --danger:#ed6262;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:Inter,Segoe UI,Arial,sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 20px 45px}
+  header{margin-bottom:22px}
+  h1{margin:0 0 6px;font-size:27px;letter-spacing:-.3px}
+  header p{margin:0;color:var(--muted);font-size:14px}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tab{
+    border:1px solid var(--border);background:var(--panel);color:var(--muted);
+    padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600;
+  }
+  .tab.active{background:var(--accent);color:#071116;border-color:var(--accent)}
+  .page{display:none}.page.active{display:block}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .card{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:10px;padding:18px;
+  }
+  .card h2{font-size:17px;margin:0 0 15px}
+  .field{margin-bottom:13px}
+  label{display:block;font-size:13px;font-weight:650;margin-bottom:6px;color:#d9dce1}
+  input,select,textarea{
+    width:100%;border:1px solid var(--border);background:var(--panel2);
+    color:var(--text);border-radius:7px;padding:10px 11px;font:inherit;
+    outline:none;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+  textarea{min-height:88px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .preview{
+    background:#0f1012;border:1px solid var(--border);border-radius:8px;
+    padding:14px;min-height:250px;white-space:pre-wrap;overflow:auto;
+    font-family:Consolas,Monaco,monospace;font-size:13px;line-height:1.5;
+  }
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  button{
+    border:0;border-radius:7px;padding:10px 14px;cursor:pointer;
+    font-weight:650;background:var(--accent);color:#071116;
+  }
+  button.secondary{background:#2b2f35;color:var(--text);border:1px solid var(--border)}
+  button.success{background:var(--success);color:#08130d}
+  .notice{display:none;margin-top:10px;color:var(--success);font-size:13px}
+  .full{grid-column:1/-1}
+  @media(max-width:800px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Discord Format Builder</h1>
+  <p>Build moderation messages and roleplay session announcements without manually formatting them.</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="moderation">Moderation</button>
+  <button class="tab" data-tab="roleplay">Roleplay Session</button>
+</div>
+
+<section id="moderation" class="page active">
+  <div class="grid">
+    <div class="card">
+      <h2>Moderation</h2>
+
+      <div class="field">
+        <label>Moderation format</label>
+        <select id="modType">
+          <option value="warning">Warning</option>
+          <option value="mute">Mute</option>
+        </select>
+      </div>
+
+      <div id="warningFields">
+        <div class="field">
+          <label>Warning format</label>
+          <select id="warningFormat">
+            <option value="normal">Warning 1–3</option>
+            <option value="late">Warning 4–5 / 6+ notice</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Warning number</label>
+          <input id="warningNumber" type="number" min="1" value="1">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>User ID</label>
+        <input id="userId" placeholder="123456789012345678">
+      </div>
+
+      <div class="field">
+        <label>Reason</label>
+        <input id="reason" placeholder="Enter the reason">
+      </div>
+
+      <div class="field">
+        <label>Evidence</label>
+        <input id="evidence" placeholder="https://... https://...">
+        <div class="hint">Separate multiple evidence links with spaces.</div>
+      </div>
+
+      <div id="muteFields" style="display:none">
+        <div class="field">
+          <label>Mute length</label>
+          <input id="muteLength" placeholder="1h, 24h, 7d">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="modCopy" class="success">Copy Format</button>
+        <button id="modClear" class="secondary">Clear</button>
+      </div>
+      <div id="modNotice" class="notice">Copied to clipboard.</div>
+    </div>
+
+    <div class="card">
+      <h2>Preview</h2>
+      <div id="modPreview" class="preview"></div>
+    </div>
+  </div>
+</section>
+
+<section id="roleplay" class="page">
+  <div class="grid">
+    <div class="card">
+      <h2>Session Information</h2>
+
+      <div class="field">
+        <label>Host user ID</label>
+        <input id="hostId" value="993004784556724345">
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Peacetime</label>
+          <select id="peacetime">
+            <option>Strict</option><option>On</option><option>Off</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>FRP speed</label>
+          <select id="frp">
+            <option value="65">65</option>
+            <option value="70">70</option>
+            <option value="75">75</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Price limit</label>
+          <select id="price">
+            <option>200k</option><option>250k</option><option>300k</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>House claiming</label>
+          <select id="house"><option>On</option><option>Off</option></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Trailer</label>
+        <select id="trailer">
+          <option>Everyone</option><option>Staff Only</option><option>PS Only</option>
+        </select>
+      </div>
+
+      <h2 style="margin-top:20px">Map Information</h2>
+
+      <div class="row">
+        <div class="field">
+          <label>Horton</label>
+          <select id="horton"><option>Banned</option><option>Allowed</option></select>
+        </div>
+        <div class="field">
+          <label>Brookmere</label>
+          <select id="brookmere"><option>Banned</option><option>Allowed</option></select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Highway</label>
+          <select id="highway"><option>Banned</option><option>Allowed</option></select>
+        </div>
+        <div class="field">
+          <label>Current AORP</label>
+          <input id="aorp" placeholder="AORP">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Game code</label>
+        <input id="gameCode" placeholder="Enter game code">
+        <div class="hint">The generated code is automatically hidden as ||CODE|| in Discord.</div>
+      </div>
+
+      <div class="actions">
+        <button id="rpCopy" class="success">Copy Format</button>
+        <button id="rpClear" class="secondary">Clear</button>
+      </div>
+      <div id="rpNotice" class="notice">Copied to clipboard.</div>
+    </div>
+
+    <div class="card">
+      <h2>Discord Preview</h2>
+      <div id="rpPreview" class="preview"></div>
+    </div>
+  </div>
+</section>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    $(btn.dataset.tab).classList.add("active");
+  });
+});
+
+$("modType").addEventListener("change",()=>{
+  const warning = $("modType").value==="warning";
+  $("warningFields").style.display=warning?"block":"none";
+  $("muteFields").style.display=warning?"none":"block";
+  updateMod();
+});
+
+function evidenceText(){
+  const e=$("evidence").value.trim();
+  return e ? e : "[Evidence link(s)]";
+}
+
+function updateMod(){
+  const type=$("modType").value;
+  const uid=$("userId").value.trim() || "{USER ID}";
+  const reason=$("reason").value.trim() || "{Reason}";
+  let out="";
+
+  if(type==="warning"){
+    const n=$("warningNumber").value || "1";
+    if($("warningFormat").value==="normal"){
+      out=`?warning ${uid} ${reason}. **Warning #${n} issued.**
+
+> Evidence: ${evidenceText()}`;
+    }else{
+      out=`?warning ${uid} ${reason}. **Warning #${n} issued; at six warnings, you will be banned from the server.**
+
+> Evidence: ${evidenceText()}`;
+    }
+  }else{
+    const len=$("muteLength").value.trim() || "{Length}";
+    out=`.mute ${uid} ${len} ${reason}
+
+> Evidence (if needed): ${evidenceText()}`;
+  }
+  $("modPreview").textContent=out;
+}
+
+["warningFormat","warningNumber","userId","reason","evidence","muteLength"].forEach(id=>{
+  $(id).addEventListener("input",updateMod);
+  $(id).addEventListener("change",updateMod);
+});
+
+$("modCopy").addEventListener("click",async()=>{
+  await navigator.clipboard.writeText($("modPreview").textContent);
+  $("modNotice").style.display="block";
+  setTimeout(()=>$("modNotice").style.display="none",1600);
+});
+$("modClear").addEventListener("click",()=>{
+  ["userId","reason","evidence","muteLength"].forEach(id=>$(id).value="");
+  $("warningNumber").value="1";
+  updateMod();
+});
+
+function rpText(){
+  const frp=$("frp").value;
+  const highwayFRP = frp==="65" ? "85" : frp==="70" ? "90" : "95";
+  const code=$("gameCode").value.trim() || "CODE";
+  const host=$("hostId").value.trim() || "993004784556724345";
+
+  return `<:gvcn_round:1545262154280738947> Roleplay Information:
+
+@here @session <@${host}>, is hosting a session.
+
+<:Link2:1026237872149372978> Game code: ||${code}||
+
+**Session Information:**
+> - Peacetime is **${$("peacetime").value}.** **No/Minor/Major crimes are allowed.**
+> - FRP Speeds are **${frp} mph**. FRP are Highways are **${highwayFRP}mph**
+> - <:MoneySign:1216974961764466708> Price limit is **${$("price").value}.** Patron is price **exempt**. Staff members are vehicle **Exempt.**
+> - House Claiming is **${$("house").value}.**
+> - <:WSP:1217696881602334770> <:OCSO:1217697369332908062> <:GVFD:1217697480360329317> <:DOT:1217697554452709396> If you want to patrol as a Public service member, you must apply in <#1389827299888594996>.
+
+**Vehicle Information:**
+> - Heens, unrealistic limited, unrealistic vehicles, and any cars that cant reach 55 MPH are **banned**.
+> - Busses & Taxies are now apart of the <:DOT:1217697554452709396> DOT Team. You must apply for DOT, and the correct division to operate a Bus and/or Taxi.
+> - **German Police Car** is **staff only.**
+> - You must ask the host or other staff members in the session to **operate** the following: Limos, Security Cars, and Food Trucks.
+> - Trailer is allowed for **${$("trailer").value}.**
+
+**Map Information:**
+> - Horton is **${$("horton").value}.**
+> - Brookmere is **${$("brookmere").value}.**
+> - The highway is **${$("highway").value}.**
+> - Current AORP: **${$("aorp").value.trim() || "AORP"}**
+
+<:Arrowright:1040060887991599184> **Read <#935357255245770835>, and current session information before leaving spawn.**
+<:Arrowright:1040060887991599184> **You may leave spawn after reacting.**
+<:Arrowright:1040060887991599184> **Enjoy! <:cursedhunter:787842476505432114> **
+<:RedDot:1217696651674648607>  **Session Strikes 0/3**`;
+}
+
+function updateRP(){
+  $("rpPreview").textContent=rpText();
+}
+["hostId","peacetime","frp","price","house","trailer","horton","brookmere","highway","aorp","gameCode"].forEach(id=>{
+  $(id).addEventListener("input",updateRP);
+  $(id).addEventListener("change",updateRP);
+});
+$("rpCopy").addEventListener("click",async()=>{
+  await navigator.clipboard.writeText(rpText());
+  $("rpNotice").style.display="block";
+  setTimeout(()=>$("rpNotice").style.display="none",1600);
+});
+$("rpClear").addEventListener("click",()=>{
+  $("gameCode").value="";
+  $("aorp").value="";
+  $("hostId").value="993004784556724345";
+  updateRP();
+});
+
+updateMod();
+updateRP();
+</script>
+</body>
+</html>
