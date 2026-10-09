@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Discord Format Builder</title>
+<title>GVCN | Staff Format Builder</title>
 <style>
   :root{
     --bg:#111214; --panel:#181a1e; --panel2:#202328; --border:#30343b;
@@ -64,7 +64,7 @@
 <body>
 <div class="wrap">
 <header>
-  <h1>Discord Format Builder</h1>
+  <h1>GVCN | Staff Format Builder</h1>
   <p>Build moderation messages and roleplay session announcements without manually formatting them.</p>
 </header>
 
